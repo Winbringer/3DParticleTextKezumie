@@ -11,7 +11,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 #endregion
@@ -317,7 +316,7 @@ namespace Particle3DSample
             //                               currentState);
 
             spriteBatch.Begin();
-            spriteBatch.DrawString(font, message, new Vector2(0, 0), Color.White);
+            spriteBatch.DrawString(font, message, new Vector2(10, 10), Color.White);
             spriteBatch.End();
         }
 

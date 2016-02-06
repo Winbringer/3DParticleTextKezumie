@@ -25,39 +25,14 @@ namespace Particle3DSample
     {
         #region Fields
 
-
         GraphicsDeviceManager graphics;
 
         SpriteBatch spriteBatch;
         SpriteFont font;
-        Model grid;
-
-
-        // This sample uses five different particle systems.
-        ParticleSystem explosionParticles;
-        ParticleSystem explosionSmokeParticles;
-        ParticleSystem projectileTrailParticles;
+        // This sample uses five different particle systems.    
         ParticleSystem smokePlumeParticles;
-        ParticleSystem fireParticles;
-
-
-        // The sample can switch between three different visual effects.
-        enum ParticleState
-        {
-            Explosions,
-            SmokePlume,
-            RingOfFire,
-        };
-
-        ParticleState currentState = ParticleState.Explosions;
-
-
-        // The explosions effect works by firing projectiles up into the
-        // air, so we need to keep track of all the active projectiles.
-        List<Projectile> projectiles = new List<Projectile>();
 
         TimeSpan timeToNextProjectile = TimeSpan.Zero;
-
 
         // Random number generator for the fire effect.
         Random random = new Random();
@@ -66,7 +41,6 @@ namespace Particle3DSample
         // Input state.
         KeyboardState currentKeyboardState;
         GamePadState currentGamePadState;
-
         KeyboardState lastKeyboardState;
         GamePadState lastGamePadState;
 
@@ -90,27 +64,15 @@ namespace Particle3DSample
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
-            // Construct our particle system components.
-            explosionParticles = new ExplosionParticleSystem(this, Content);
-            explosionSmokeParticles = new ExplosionSmokeParticleSystem(this, Content);
-            projectileTrailParticles = new ProjectileTrailParticleSystem(this, Content);
+            // Construct our particle system components.           
             smokePlumeParticles = new SmokePlumeParticleSystem(this, Content);
-            fireParticles = new FireParticleSystem(this, Content);
 
             // Set the draw order so the explosions and fire
             // will appear over the top of the smoke.
             smokePlumeParticles.DrawOrder = 100;
-            explosionSmokeParticles.DrawOrder = 200;
-            projectileTrailParticles.DrawOrder = 300;
-            explosionParticles.DrawOrder = 400;
-            fireParticles.DrawOrder = 500;
-
-            // Register the particle system components.
-            Components.Add(explosionParticles);
-            Components.Add(explosionSmokeParticles);
-            Components.Add(projectileTrailParticles);
+            // Register the particle system components.           
             Components.Add(smokePlumeParticles);
-            Components.Add(fireParticles);
+
         }
 
 
@@ -120,9 +82,7 @@ namespace Particle3DSample
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(graphics.GraphicsDevice);
-
             font = Content.Load<SpriteFont>("font");
-            grid = Content.Load<Model>("grid");
         }
 
 
@@ -140,67 +100,11 @@ namespace Particle3DSample
 
             UpdateCamera(gameTime);
 
-            //switch (currentState)
-            //{
-            //    case ParticleState.Explosions:
-            //        UpdateExplosions(gameTime);
-            //        break;
 
-            //    case ParticleState.SmokePlume:
-            //        UpdateSmokePlume();
-            //        break;
-
-            //    case ParticleState.RingOfFire:
-            //        UpdateFire();
-            //        break;
-            //}
             UpdateSmokePlume();
-            UpdateProjectiles(gameTime);
+
 
             base.Update(gameTime);
-        }
-
-
-        /// <summary>
-        /// Helper for updating the explosions effect.
-        /// </summary>
-        void UpdateExplosions(GameTime gameTime)
-        {
-            timeToNextProjectile -= gameTime.ElapsedGameTime;
-
-            if (timeToNextProjectile <= TimeSpan.Zero)
-            {
-                // Create a new projectile once per second. The real work of moving
-                // and creating particles is handled inside the Projectile class.
-                projectiles.Add(new Projectile(explosionParticles,
-                                               explosionSmokeParticles,
-                                               projectileTrailParticles));
-
-                timeToNextProjectile += TimeSpan.FromSeconds(1);
-            }
-        }
-
-
-        /// <summary>
-        /// Helper for updating the list of active projectiles.
-        /// </summary>
-        void UpdateProjectiles(GameTime gameTime)
-        {
-            int i = 0;
-
-            while (i < projectiles.Count)
-            {
-                if (!projectiles[i].Update(gameTime))
-                {
-                    // Remove projectiles at the end of their life.
-                    projectiles.RemoveAt(i);
-                }
-                else
-                {
-                    // Advance to the next projectile.
-                    i++;
-                }
-            }
         }
 
 
@@ -211,42 +115,6 @@ namespace Particle3DSample
         {
             // This is trivial: we just create one new smoke particle per frame.
             smokePlumeParticles.AddParticle(Vector3.Zero, Vector3.Zero);
-        }
-
-
-        /// <summary>
-        /// Helper for updating the fire effect.
-        /// </summary>
-        void UpdateFire()
-        {
-            const int fireParticlesPerFrame = 20;
-
-            // Create a number of fire particles, randomly positioned around a circle.
-            for (int i = 0; i < fireParticlesPerFrame; i++)
-            {
-                fireParticles.AddParticle(RandomPointOnCircle(), Vector3.Zero);
-            }
-
-            // Create one smoke particle per frmae, too.
-            smokePlumeParticles.AddParticle(RandomPointOnCircle(), Vector3.Zero);
-        }
-
-
-        /// <summary>
-        /// Helper used by the UpdateFire method. Chooses a random location
-        /// around a circle, at which a fire particle will be created.
-        /// </summary>
-        Vector3 RandomPointOnCircle()
-        {
-            const float radius = 30;
-            const float height = 40;
-
-            double angle = random.NextDouble() * Math.PI * 2;
-
-            float x = (float)Math.Cos(angle);
-            float y = (float)Math.Sin(angle);
-
-            return new Vector3(x * radius, y * radius + height, 0);
         }
 
 
@@ -273,15 +141,10 @@ namespace Particle3DSample
                                                                     aspectRatio,
                                                                     1, 10000);
 
-            // Pass camera matrices through to the particle system components.
-            explosionParticles.SetCamera(view, projection);
-            explosionSmokeParticles.SetCamera(view, projection);
-            projectileTrailParticles.SetCamera(view, projection);
             smokePlumeParticles.SetCamera(view, projection);
-            fireParticles.SetCamera(view, projection);
 
-            // Draw our background grid and message text.
-            DrawGrid(view, projection);
+
+            // Draw our background grid and message text.          
 
             DrawMessage();
 
@@ -291,30 +154,11 @@ namespace Particle3DSample
 
 
         /// <summary>
-        /// Helper for drawing the background grid model.
-        /// </summary>
-        void DrawGrid(Matrix view, Matrix projection)
-        {
-            //GraphicsDevice device = graphics.GraphicsDevice;
-
-            //device.BlendState = BlendState.Opaque;
-            //device.DepthStencilState = DepthStencilState.Default;
-            //device.SamplerStates[0] = SamplerState.LinearWrap;
-
-            //grid.Draw(Matrix.Identity, view, projection);
-        }
-
-
-        /// <summary>
         /// Helper for drawing our message text.
         /// </summary>
         void DrawMessage()
         {
             string message = string.Format("For Nami by Victorem");
-            //string message = string.Format("Current effect: {0}!!!\n" +
-            //                               "Hit the A button or space bar to switch.",
-            //                               currentState);
-
             spriteBatch.Begin();
             spriteBatch.DrawString(font, message, new Vector2(10, 10), Color.White);
             spriteBatch.End();
@@ -345,17 +189,6 @@ namespace Particle3DSample
                 Exit();
             }
 
-            // Check for changing the active particle effect.
-            if (((currentKeyboardState.IsKeyDown(Keys.Space) &&
-                 (lastKeyboardState.IsKeyUp(Keys.Space))) ||
-                ((currentGamePadState.Buttons.A == ButtonState.Pressed)) &&
-                 (lastGamePadState.Buttons.A == ButtonState.Released)))
-            {
-                currentState++;
-
-                if (currentState > ParticleState.RingOfFire)
-                    currentState = 0;
-            }
         }
 
 
